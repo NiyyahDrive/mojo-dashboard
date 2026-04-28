@@ -90,6 +90,24 @@ const Badge=({label,bias})=>(<span style={{display:"inline-block",padding:"3px 1
 export default function App(){
   const[apiKey,setApiKey]=useState("vercel");
   const[view,setView]=useState("dashboard");
+  const[prices,setPrices]=useState({nas100:null,sp500:null});
+  const BRIDGE="https://unwind-unrobed-requisite.ngrok-free.dev";
+  useEffect(()=>{
+    async function fetchPrices(){
+      try{
+        const[r1,r2]=await Promise.all([
+          fetch(BRIDGE+"/data?tool=price&symbol=VANTAGE:NAS100",{headers:{"ngrok-skip-browser-warning":"1"}}),
+          fetch(BRIDGE+"/data?tool=price&symbol=VANTAGE:SP500",{headers:{"ngrok-skip-browser-warning":"1"}})
+        ]);
+        const[d1,d2]=await Promise.all([r1.json(),r2.json()]);
+        const parse=d=>JSON.parse(d.data.content[0].text);
+        setPrices({nas100:parse(d1),sp500:parse(d2)});
+      }catch(e){console.log("Bridge offline",e);}
+    }
+    fetchPrices();
+    const t=setInterval(fetchPrices,30000);
+    return()=>clearInterval(t);
+  },[]);
   if(!apiKey)return <ApiKeyGate onKey={setApiKey}/>;
   return(
     <div style={{fontFamily:"'DM Mono','Courier New',monospace",background:T.bg,minHeight:"100vh",color:T.text}}>
@@ -98,7 +116,14 @@ export default function App(){
         {["dashboard","team"].map(v=>(<button key={v} onClick={()=>setView(v)} style={{padding:"6px 16px",fontSize:10,letterSpacing:1,background:view===v?T.amber:"transparent",border:`1.5px solid ${view===v?T.amber:T.border}`,color:view===v?"#fff":T.text3,borderRadius:6,cursor:"pointer",fontFamily:"inherit",fontWeight:600,textTransform:"uppercase"}}>{v==="dashboard"?"Session Dashboard":"Research Team"}</button>))}
         <button onClick={()=>{sessionStorage.removeItem("anthropic_key");setApiKey("");}} style={{padding:"6px 12px",fontSize:9,background:"transparent",border:`1px solid ${T.border}`,color:T.text4,borderRadius:6,cursor:"pointer",fontFamily:"inherit"}}>LOGOUT</button>
       </div>
-      {view==="dashboard"?<SessionDashboard apiKey={apiKey}/>:<ResearchTeam apiKey={apiKey}/>}
+      {prices.nas100&&(<div style={{background:"#0F172A",borderBottom:`1px solid ${T.border}`,padding:"6px 24px",display:"flex",gap:24,alignItems:"center"}}>
+    <span style={{fontSize:9,color:T.text4,letterSpacing:2}}>VANTAGE LIVE</span>
+    <span style={{fontSize:13,fontWeight:700,color:T.green}}>NAS100 <strong>{prices.nas100.last?.toLocaleString("nl-NL",{minimumFractionDigits:2})}</strong></span>
+    <span style={{fontSize:10,color:prices.nas100.close>prices.nas100.open?T.green:T.red}}>{prices.nas100.close>prices.nas100.open?"▲":"▼"} H:{prices.nas100.high?.toLocaleString()} L:{prices.nas100.low?.toLocaleString()}</span>
+    <span style={{fontSize:13,fontWeight:700,color:T.blue,marginLeft:16}}>SP500 <strong>{prices.sp500?.last?.toLocaleString("nl-NL",{minimumFractionDigits:2})}</strong></span>
+    <span style={{fontSize:10,color:T.text4,marginLeft:"auto"}}>{new Date().toLocaleTimeString("nl-NL")} UTC</span>
+  </div>)}
+{view==="dashboard"?<SessionDashboard apiKey={apiKey}/>:<ResearchTeam apiKey={apiKey}/>}
     </div>
   );
 }
