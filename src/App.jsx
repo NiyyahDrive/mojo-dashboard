@@ -88,7 +88,7 @@ const Label=({children})=>(<div style={{fontSize:9,letterSpacing:2,color:T.text3
 const Badge=({label,bias})=>(<span style={{display:"inline-block",padding:"3px 10px",borderRadius:4,fontSize:10,fontWeight:700,letterSpacing:1,background:biasBg(bias||label),color:biasColor(bias||label)}}>{label}</span>);
 
 export default function App(){
-  const[apiKey,setApiKey]=useState(()=>sessionStorage.getItem("anthropic_key")||"");
+  const[apiKey,setApiKey]=useState("vercel");
   const[view,setView]=useState("dashboard");
   if(!apiKey)return <ApiKeyGate onKey={setApiKey}/>;
   return(
