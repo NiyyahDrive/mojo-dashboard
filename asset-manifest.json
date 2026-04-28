@@ -1,0 +1,10 @@
+{
+  "files": {
+    "main.js": "/mojo-dashboard/static/js/main.1382938a.js",
+    "index.html": "/mojo-dashboard/index.html",
+    "main.1382938a.js.map": "/mojo-dashboard/static/js/main.1382938a.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.1382938a.js"
+  ]
+}
