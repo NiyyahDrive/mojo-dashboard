@@ -121,7 +121,7 @@ function SessionDashboard({apiKey}){
     try{
       const res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})});
       const data=await res.json();
-      setBriefing(data.content?.find(b=>b.type==="text")?.text||"No response.");
+      console.log("RAW",JSON.stringify(data));setBriefing(data.content?.find(b=>b.type==="text")?.text||data.error||JSON.stringify(data));
     }catch{setBriefing("\u26a0\ufe0f API fout.");}
     setBL(false);
   }
