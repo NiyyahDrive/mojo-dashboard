@@ -113,7 +113,7 @@ export default function App(){
     <div style={{fontFamily:"'DM Mono','Courier New',monospace",background:T.bg,minHeight:"100vh",color:T.text}}>
       <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"10px 24px",display:"flex",gap:8,alignItems:"center",boxShadow:"0 1px 4px rgba(0,0,0,0.06)"}}>
         <div style={{flex:1}}><span style={{fontSize:9,letterSpacing:2,color:T.text3}}>MOJO TRADING OPS</span><span style={{fontSize:9,color:T.border2,margin:"0 8px"}}>\u00b7</span><span style={{fontSize:9,color:T.text4}}>NAS100 \u00b7 VANTAGE MARKETS</span></div>
-        {["dashboard","team"].map(v=>(<button key={v} onClick={()=>setView(v)} style={{padding:"6px 16px",fontSize:10,letterSpacing:1,background:view===v?T.amber:"transparent",border:`1.5px solid ${view===v?T.amber:T.border}`,color:view===v?"#fff":T.text3,borderRadius:6,cursor:"pointer",fontFamily:"inherit",fontWeight:600,textTransform:"uppercase"}}>{v==="dashboard"?"Session Dashboard":"Research Team"}</button>))}
+        {[["dashboard","Session Dashboard"],["team","Research Team"],["feeds","Live Feeds"]].map(([v,label])=>(<button key={v} onClick={()=>setView(v)} style={{padding:"6px 16px",fontSize:10,letterSpacing:1,background:view===v?T.amber:"transparent",border:`1.5px solid ${view===v?T.amber:T.border}`,color:view===v?"#fff":T.text3,borderRadius:6,cursor:"pointer",fontFamily:"inherit",fontWeight:600,textTransform:"uppercase"}}>{label}</button>))}
         <button onClick={()=>{sessionStorage.removeItem("anthropic_key");setApiKey("");}} style={{padding:"6px 12px",fontSize:9,background:"transparent",border:`1px solid ${T.border}`,color:T.text4,borderRadius:6,cursor:"pointer",fontFamily:"inherit"}}>LOGOUT</button>
       </div>
       {prices.nas100&&(<div style={{background:"#0F172A",borderBottom:`1px solid ${T.border}`,padding:"6px 24px",display:"flex",gap:24,alignItems:"center"}}>
@@ -123,7 +123,7 @@ export default function App(){
     <span style={{fontSize:13,fontWeight:700,color:T.blue,marginLeft:16}}>SP500 <strong>{prices.sp500?.last?.toLocaleString("nl-NL",{minimumFractionDigits:2})}</strong></span>
     <span style={{fontSize:10,color:T.text4,marginLeft:"auto"}}>{new Date().toLocaleTimeString("nl-NL")} UTC</span>
   </div>)}
-{view==="dashboard"?<SessionDashboard apiKey={apiKey}/>:<ResearchTeam apiKey={apiKey}/>}
+{view==="dashboard"?<SessionDashboard apiKey={apiKey}/>:view==="team"?<ResearchTeam apiKey={apiKey}/>:<LiveFeeds/>}
     </div>
   );
 }
@@ -280,6 +280,32 @@ function ResearchTeam({apiKey}){
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+const LIVE_FEEDS=[
+  {id:"trading",label:"Trading Dashboard",url:"http://localhost:3215",desc:"Live NAS100 feed · LaunchAgent"},
+  {id:"tradingview",label:"TradingView MCP",url:"http://localhost:3210",desc:"TradingView data bridge"},
+  {id:"pablo",label:"Pablo Agents",url:"http://localhost:8765",desc:"Multi-agent dashboard"},
+];
+
+function LiveFeeds(){
+  const[active,setActive]=useState("trading");
+  const feed=LIVE_FEEDS.find(f=>f.id===active);
+  return(
+    <div style={{display:"flex",flexDirection:"column",height:"calc(100vh - 49px)"}}>
+      <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"0 24px",display:"flex",alignItems:"center",gap:0}}>
+        {LIVE_FEEDS.map(f=>(<button key={f.id} onClick={()=>setActive(f.id)} style={{padding:"12px 20px",fontSize:10,letterSpacing:1.5,background:"transparent",border:"none",borderBottom:`2.5px solid ${active===f.id?T.amber:"transparent"}`,color:active===f.id?T.amber:T.text3,cursor:"pointer",fontFamily:"inherit",textTransform:"uppercase",fontWeight:active===f.id?700:400}}>{f.label}</button>))}
+        <span style={{marginLeft:"auto",fontSize:9,color:T.text4}}>{feed.url} · {feed.desc}</span>
+      </div>
+      <iframe
+        key={active}
+        src={feed.url}
+        style={{flex:1,border:"none",width:"100%",background:T.bg}}
+        title={feed.label}
+        allow="*"
+      />
     </div>
   );
 }
